@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E😂%3C/text%3E%3C/svg%3E">
+    <link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E😂%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Ctext%20y='.9em'%20font-size='90'%3E😂%3C/text%3E%3C/svg%3E" sizes="180x180">
+    <meta name="theme-color" content="#212129">
+    <title>MiniChat</title>
+    <meta name="description" content="Minichat">
+    <link rel="stylesheet" href="static/index.6369ed8c.css">
+    <link rel="stylesheet" href="static/index.a243aca3.css">
+
+    <style type="text/css">
+
+        #popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            overflow: hidden;
+            max-width: 400px;
+            width: 96%;
+        }
+
+        .popup-content input {
+            width: calc(100%);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .popup-content button {
+            padding: 10px 20px;
+            background-color: #a0bfa6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .container {
+            height: calc(100% - 64px - 106px - 16px - 26px);
+            overflow: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            ::-webkit-scrollbar {
+                display: none;
+            }
+        }
+
+        html,body,main{
+            height: 100%;
+        }
+
+        .message-text {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .message-image {
+            display: block;
+            max-width: min(100%, 360px);
+            border-radius: 12px;
+            cursor: zoom-in;
+        }
+
+        .message-tools {
+            margin-top: 8px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .message-tools.is-received {
+            justify-content: flex-start;
+        }
+
+        .composer {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .composer-grow {
+            flex: 1;
+        }
+
+        .is-hidden-input {
+            display: none;
+        }
+
+        .image-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(6px);
+        }
+
+        .image-modal img {
+            max-width: min(92vw, 1200px);
+            max-height: 88vh;
+            border-radius: 16px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+        }
+
+    </style>
+    <script src="static/vue.global.js"></script>
+</head>
+
+<body>
+
+<main id="app">
+    <div id="popup" class="hidden">
+        <div class="popup-content">
+            <div id="roomTips" style="overflow-wrap: anywhere;" class="my-4 px-4 py-3 border border-red/50 bg-red/10 text-red op-70 text-sm"></div><br>
+            <input type="text" id="username" placeholder="Enter Name...">
+            <input type="text" id="password" placeholder="Password or Empty">
+            <button id="join">Enter</button>
+        </div>
+    </div>
+    <header>
+        <div class="fb items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 32 32">
+                <g fill="none">
+                    <path fill="#F8312F" d="M5 3.5a1.5 1.5 0 0 1-1 1.415V12l2.16 5.487L4 23c-1.1 0-2-.9-2-1.998v-7.004a2 2 0 0 1 1-1.728V4.915A1.5 1.5 0 1 1 5 3.5Zm25.05.05c0 .681-.44 1.26-1.05 1.468V12.2c.597.347 1 .994 1 1.73v7.01c0 1.1-.9 2-2 2l-2.94-5.68L28 11.93V5.018a1.55 1.55 0 1 1 2.05-1.468Z"></path>
+                    <path fill="#FFB02E" d="M11 4.5A1.5 1.5 0 0 1 12.5 3h7a1.5 1.5 0 0 1 .43 2.938c-.277.082-.57.104-.847.186l-3.053.904l-3.12-.908c-.272-.08-.56-.1-.832-.18A1.5 1.5 0 0 1 11 4.5Z"></path>
+                    <path fill="#CDC4D6" d="M22.05 30H9.95C6.66 30 4 27.34 4 24.05V12.03C4 8.7 6.7 6 10.03 6h11.95C25.3 6 28 8.7 28 12.03v12.03c0 3.28-2.66 5.94-5.95 5.94Z"></path>
+                    <path fill="#212121" d="M9.247 18.5h13.506c2.33 0 4.247-1.919 4.247-4.25A4.257 4.257 0 0 0 22.753 10H9.247A4.257 4.257 0 0 0 5 14.25a4.257 4.257 0 0 0 4.247 4.25Zm4.225 7.5h5.056C19.34 26 20 25.326 20 24.5s-.66-1.5-1.472-1.5h-5.056C12.66 23 12 23.674 12 24.5s.66 1.5 1.472 1.5Z"></path>
+                    <path fill="#00A6ED" d="M10.25 12C9.56 12 9 12.56 9 13.25v2.5a1.25 1.25 0 1 0 2.5 0v-2.5c0-.69-.56-1.25-1.25-1.25Zm11.5 0c-.69 0-1.25.56-1.25 1.25v2.5a1.25 1.25 0 1 0 2.5 0v-2.5c0-.69-.56-1.25-1.25-1.25Z"></path>
+                </g>
+            </svg>
+            <div id="themeToggle" class="flex items-center justify-center w-10 h-10 rounded-md transition-colors hover:bg-slate/10 astro-KXYEDVG6">
+                <svg class="theme_toggle_svg astro-KXYEDVG6" width="1.2em" height="1.2em" viewBox="0 0 24 24" color="#858585" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor">
+                    <mask id="myMask" class="astro-KXYEDVG6">
+                        <rect x="0" y="0" width="100%" height="100%" fill="white" class="astro-KXYEDVG6"></rect>
+                        <circle class="theme_toggle_circle1 astro-KXYEDVG6" fill="black" cx="100%" cy="0%" r="5"></circle>
+                    </mask>
+                    <circle class="theme_toggle_circle2 astro-KXYEDVG6" cx="12" cy="12" fill="#858585" mask="url(#myMask)" r="5"></circle>
+                    <g class="theme_toggle_g astro-KXYEDVG6" stroke="currentColor" opacity="1">
+                        <line x1="12" y1="1" x2="12" y2="3" class="astro-KXYEDVG6"></line>
+                        <line x1="12" y1="21" x2="12" y2="23" class="astro-KXYEDVG6"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" class="astro-KXYEDVG6"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" class="astro-KXYEDVG6"></line>
+                        <line x1="1" y1="12" x2="3" y2="12" class="astro-KXYEDVG6"></line>
+                        <line x1="21" y1="12" x2="23" y2="12" class="astro-KXYEDVG6"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" class="astro-KXYEDVG6"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" class="astro-KXYEDVG6"></line>
+                    </g>
+                </svg>
+            </div>
+        </div>
+        <div class="fi mt-2">
+            <span class="gpt-title">Mini</span>
+            <span class="gpt-subtitle">Chat</span>
+        </div>
+        <div class="my-4 px-4 py-3 border border-red/50 bg-red/10" v-show="roomTips != ''">
+            <div class="text-red op-70 text-sm" v-html="roomTips"></div>
+        </div>
+    </header>
+
+    <div data-hk="s00-0" my-6="" id="messages" class="container">
+        <div data-hk="s00-1-0" class="my-4">
+        </div>
+        <div class="py-2 -mx-4 px-4 transition-colors md:hover:bg-slate/3" v-for="msg in items" :key="msg.renderKey">
+            <div class="flex gap-3 rounded-lg op-75">
+                <div class="shrink-0 w-7 h-7 rounded-full op-80 bg-gradient-to-r from-purple-400 to-yellow-400 mt-1 "></div>
+                <div class="message prose break-words overflow-hidden">
+                    <div class="text-red op-90 text-base">
+                        <template v-if="msg.cmd === 'join' || msg.cmd === 'exit'">
+                            <strong>( SYSTEM )</strong>
+                        </template>
+                        <template v-else-if="msg.username === username">
+                            <strong>( ME ) {[ msg.username ]}</strong>
+                        </template>
+                        <template v-else>
+                            <strong>{[ msg.username ]}</strong>
+                        </template>
+                    </div>
+                    <div class="text-red op-90 text-xs">
+                        {[ formatDate(msg.sentAt) ]}
+                    </div>
+                    <div>
+                        <template v-if="msg.cmd === 'join' || msg.cmd === 'exit'">
+                            <p class="text-red op-90 text-sm" style="margin:0.5rem 0" v-html="msg.payload"></p>
+                        </template>
+                        <template v-else-if="msg.viewType === 'image'">
+                            <img class="message-image" :src="msg.dataUrl" alt="Shared image" @click="openImagePreview(msg.dataUrl)">
+                        </template>
+                        <template v-else>
+                            <p class="message-text">{[ msg.text ]}</p>
+                        </template>
+                    </div>
+
+                    <div
+                        v-if="allowDelete && msg.cmd === 'chat' && msg.username === username && msg.messageId"
+                        class="message-tools"
+                        :class="{ 'is-received': msg.username !== username }"
+                    >
+                        <button gen-slate-btn @click="deleteMessage(msg)">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gen-text-wrapper composer">
+        <button gen-slate-btn @click="triggerImageUpload" :disabled="isSendingImage">{[ isSendingImage ? 'Processing...' : 'Image' ]}</button>
+        <input id="imageInput" class="is-hidden-input" type="file" accept="image/*" @change="handleImageSelect">
+        <textarea id="message" placeholder="Enter something..." autocomplete="off" autofocus rows="1" class="gen-textarea composer-grow" @keydown.enter.exact.prevent="send"></textarea>
+        <button gen-slate-btn id="send" @click="send">Send</button>
+        <button @click="clearScreen" title="Clear" gen-slate-btn><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M8 20v-5h2v5h9v-7H5v7h3zm-4-9h16V8h-6V4h-4v4H4v3zM3 21v-8H2V7a1 1 0 0 1 1-1h5V3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3h5a1 1 0 0 1 1 1v6h-1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path>
+        </svg></button>
+    </div>
+    <footer>
+        <p mt-8="" text-xs="" op-30="">
+            <span pr-1=""> Style by</span>
+            <a b-slate-link="" href="https://ddiu.io/" target="_blank">
+                Diu
+            </a>
+            <span px-1="">|</span>
+            <span pr-1=""> Server by</span>
+            <a b-slate-link="" href="https://lion.im/" target="_blank">
+                Han
+            </a>
+        </p>
+    </footer>
+
+    <div v-if="previewImage" class="image-modal" @click="closeImagePreview">
+        <button gen-slate-btn class="image-modal-close" @click.stop="closeImagePreview">Close</button>
+        <img :src="previewImage" alt="Preview image" @click.stop>
+    </div>
+</main>
+
+<script>
+
+    let host = "{{.Url}}";
+    const allowDelete = {{if .AllowDelete}}true{{else}}false{{end}};
+    let ws;
+    let username;
+    let roomNumber;
+    let password;
+
+    const MAX_CHAT_PAYLOAD_BYTES = 4 * 1024 * 1024;
+
+    function scrollToBottom() {
+        const myDiv = document.getElementById('messages');
+        myDiv.scrollTop = myDiv.scrollHeight;
+    }
+
+    function getQueryParams() {
+        let queryParams = {};
+        let queryString = window.location.search;
+
+        if (queryString.charAt(0) === '?') {
+            queryString = queryString.substr(1);
+        }
+
+        let params = new URLSearchParams(queryString);
+        params.forEach((value, key) => {
+            queryParams[key] = value;
+        });
+
+        return queryParams;
+    }
+
+    function formatDateTime(date) {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    function generateRandomString(length) {
+        let result = '';
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        return result;
+    }
+
+    function generateMessageId() {
+        return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function buildRoomTips() {
+        let tips = "Room<br> " + window.location.href + "<br><br>Images are re-encoded in the browser before sending to strip metadata.";
+        if (allowDelete) {
+            tips += "<br><br>Delete mode is enabled.";
+        }
+        return tips;
+    }
+
+    function buildTextPayload(text) {
+        return JSON.stringify({
+            type: "text",
+            message_id: generateMessageId(),
+            text: text,
+            sent_at: new Date().toISOString()
+        });
+    }
+
+    function buildImagePayload(dataUrl) {
+        return JSON.stringify({
+            type: "image",
+            message_id: generateMessageId(),
+            data_url: dataUrl,
+            sent_at: new Date().toISOString()
+        });
+    }
+
+    function buildDeletePayload(messageId) {
+        return JSON.stringify({
+            type: "delete",
+            message_id: messageId,
+            sent_at: new Date().toISOString()
+        });
+    }
+
+    function byteLength(text) {
+        return new TextEncoder().encode(text).length;
+    }
+
+    function parseChatPayload(payload) {
+        try {
+            const data = JSON.parse(payload);
+            if (data && data.type === "image" && typeof data.data_url === "string" && data.data_url.startsWith("data:image/")) {
+                return {
+                    viewType: "image",
+                    messageId: data.message_id || "",
+                    text: "",
+                    dataUrl: data.data_url,
+                    sentAt: data.sent_at || new Date().toISOString()
+                };
+            }
+            if (data && data.type === "text" && typeof data.text === "string") {
+                return {
+                    viewType: "text",
+                    messageId: data.message_id || "",
+                    text: data.text,
+                    dataUrl: "",
+                    sentAt: data.sent_at || new Date().toISOString()
+                };
+            }
+            if (data && data.type === "delete" && typeof data.message_id === "string") {
+                return {
+                    viewType: "delete",
+                    messageId: data.message_id,
+                    text: "",
+                    dataUrl: "",
+                    sentAt: data.sent_at || new Date().toISOString()
+                };
+            }
+        } catch (error) {
+        }
+
+        return {
+            viewType: "text",
+            messageId: "",
+            text: payload,
+            dataUrl: "",
+            sentAt: new Date().toISOString()
+        };
+    }
+
+    function normalizeMessage(messageData) {
+        const normalized = Object.assign({}, messageData, {
+            viewType: "system",
+            messageId: "",
+            text: "",
+            dataUrl: "",
+            sentAt: new Date().toISOString(),
+            renderKey: `${messageData.cmd}-${Math.random().toString(36).slice(2, 10)}`
+        });
+
+        if (messageData.cmd === "join" || messageData.cmd === "exit") {
+            return normalized;
+        }
+
+        const parsed = parseChatPayload(messageData.payload);
+        normalized.viewType = parsed.viewType;
+        normalized.messageId = parsed.messageId;
+        normalized.text = parsed.text;
+        normalized.dataUrl = parsed.dataUrl;
+        normalized.sentAt = parsed.sentAt;
+        normalized.renderKey = parsed.messageId || normalized.renderKey;
+        return normalized;
+    }
+
+    function ensureSocketReady() {
+        if (ws === null || ws === undefined || ws === "") {
+            alert("The connection is closed, please refresh the page to reconnect.");
+            return false;
+        }
+        return true;
+    }
+
+    function sendWsPayload(payload) {
+        if (!ensureSocketReady()) {
+            return false;
+        }
+        ws.send(payload);
+        return true;
+    }
+
+    function drawSanitizedImage(file, options) {
+        return new Promise(function(resolve, reject) {
+            const reader = new FileReader();
+            reader.onload = function(loadEvent) {
+                const image = new Image();
+                image.onload = function() {
+                    let width = image.naturalWidth;
+                    let height = image.naturalHeight;
+                    const longestSide = Math.max(width, height);
+                    if (longestSide > options.maxEdge) {
+                        const ratio = options.maxEdge / longestSide;
+                        width = Math.max(1, Math.round(width * ratio));
+                        height = Math.max(1, Math.round(height * ratio));
+                    }
+
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const context = canvas.getContext("2d");
+                    if (!context) {
+                        reject(new Error("Canvas is not supported."));
+                        return;
+                    }
+
+                    context.drawImage(image, 0, 0, width, height);
+
+                    const dataUrl = options.mimeType === "image/png"
+                        ? canvas.toDataURL(options.mimeType)
+                        : canvas.toDataURL(options.mimeType, options.quality);
+
+                    resolve(dataUrl);
+                };
+                image.onerror = function() {
+                    reject(new Error("Image decode failed."));
+                };
+                image.src = loadEvent.target.result;
+            };
+            reader.onerror = function() {
+                reject(new Error("Image read failed."));
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function buildSanitizedImagePayload(file) {
+        const variants = [
+            { mimeType: file.type === "image/png" ? "image/png" : "image/jpeg", quality: 0.88, maxEdge: 1600 },
+            { mimeType: "image/jpeg", quality: 0.82, maxEdge: 1600 },
+            { mimeType: "image/jpeg", quality: 0.78, maxEdge: 1280 },
+            { mimeType: "image/jpeg", quality: 0.72, maxEdge: 1024 }
+        ];
+
+        for (const variant of variants) {
+            const dataUrl = await drawSanitizedImage(file, variant);
+            const payload = buildImagePayload(dataUrl);
+            if (byteLength(payload) <= MAX_CHAT_PAYLOAD_BYTES) {
+                return payload;
+            }
+        }
+
+        throw new Error("Image is too large after sanitizing. Try a smaller image.");
+    }
+
+    function init(that){
+        roomNumber = getQueryParams().room;
+        if (roomNumber === undefined || roomNumber === "" || roomNumber == null){
+            let currentUrl = window.location.href;
+            let urlWithoutParams = currentUrl.split('?')[0];
+            window.location.href = urlWithoutParams + '?room=' + generateRandomString(8).toLowerCase();
+        }
+
+        document.getElementById('roomTips').innerHTML = buildRoomTips();
+
+        document.getElementById('join').onclick = function() {
+            roomNumber = getQueryParams().room;
+            username = document.getElementById('username').value;
+            password = document.getElementById('password').value;
+
+            let serverApi = window.location.protocol + '//'+ host;
+            if (host === "" || host === undefined || host === null){
+                serverApi =  window.location.protocol + '//'+ window.location.host
+            }
+
+            const data = { room_number: roomNumber, username: username , password: password };
+            const url = serverApi +'/precheck';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code !== 10000){
+                        alert(data.info);
+                        return;
+                    }
+
+                    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+                    if (host === "" || host === undefined || host === null){
+                        serverApi = protocol + window.location.host;
+                    }else{
+                        serverApi = protocol + host;
+                    }
+                    const path = '/ws?';
+
+                    const param = 'username=' + encodeURIComponent(username) + '&room_number=' + encodeURIComponent(roomNumber) + '&password=' + encodeURIComponent(password) + '&cmd=join' + '&once_token=' + encodeURIComponent(data.data);
+
+                    if (serverApi.charAt(serverApi.length - 1) === '/') {
+                        serverApi =  serverApi.slice(0, -1);
+                    }
+
+                    that.username = username;
+                    ws = new WebSocket(serverApi + path + param);
+                    that.roomTips = buildRoomTips();
+
+                    ws.onmessage = function(event) {
+                        const messageData = JSON.parse(event.data);
+                        const normalized = normalizeMessage(messageData);
+                        if (messageData.cmd === "join-pwd-fail"){
+                            document.getElementById('popup').classList.remove('hidden');
+                        }
+
+                        if (messageData.cmd === "delete" && normalized.messageId) {
+                            that.items = that.items.filter(item => item.messageId !== normalized.messageId);
+                        } else {
+                            that.items.push(normalized);
+                        }
+
+                        that.$nextTick(function() {
+                            scrollToBottom();
+                        });
+
+                    };
+
+                    ws.onopen = function() {
+                        console.log("Socket opened");
+                    };
+
+                    ws.onclose = function() {
+                        console.log("Socket closed");
+                        ws = null;
+                    };
+                    ws.onerror = function() {
+                        console.log("Socket error");
+                        ws = null;
+                    };
+
+                    document.getElementById('popup').classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error);
+                });
+        };
+
+        document.getElementById('popup').classList.remove('hidden');
+    }
+
+</script>
+
+<script type="text/javascript">
+    const { createApp } = Vue;
+
+    const app = createApp({
+        delimiters: ['{[', ']}'],
+        data() {
+            return {
+                items: [],
+                roomTips:"",
+                username:"",
+                isSendingImage: false,
+                previewImage: "",
+                allowDelete: allowDelete,
+            }
+        },
+        methods: {
+            send (){
+                const input = document.getElementById('message');
+                const message = input.value;
+                if (message.trim() === "") {
+                    return;
+                }
+                if (!sendWsPayload(buildTextPayload(message))) {
+                    return;
+                }
+                input.value ="";
+            },
+            async handleImageSelect(event) {
+                const file = event.target.files && event.target.files[0];
+                event.target.value = "";
+                if (!file) {
+                    return;
+                }
+                if (!file.type.startsWith("image/")) {
+                    alert("Please choose an image file.");
+                    return;
+                }
+
+                this.isSendingImage = true;
+                try {
+                    const payload = await buildSanitizedImagePayload(file);
+                    sendWsPayload(payload);
+                } catch (error) {
+                    alert(error.message || "Image processing failed.");
+                } finally {
+                    this.isSendingImage = false;
+                }
+            },
+            triggerImageUpload() {
+                if (!ensureSocketReady()) {
+                    return;
+                }
+                document.getElementById('imageInput').click();
+            },
+            deleteMessage(msg) {
+                if (!this.allowDelete || !msg.messageId) {
+                    return;
+                }
+                sendWsPayload(buildDeletePayload(msg.messageId));
+            },
+            clearScreen(){
+                this.items = [];
+            },
+            openImagePreview(dataUrl) {
+                this.previewImage = dataUrl;
+            },
+            closeImagePreview() {
+                this.previewImage = "";
+            },
+            formatDate(value) {
+                const date = value ? new Date(value) : new Date();
+                if (Number.isNaN(date.getTime())) {
+                    return formatDateTime(new Date());
+                }
+                return formatDateTime(date);
+            }
+        },
+        mounted: function() {
+            init(this);
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    this.closeImagePreview();
+                }
+            });
+        }
+    });
+
+    app.mount('#app');
+</script>
+
+<script type="text/javascript">
+    const themeToggle = document.getElementById('themeToggle');
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+
+    themeToggle.addEventListener('click', function() {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    });
+</script>
+
+</body>
+
+
+</html>
