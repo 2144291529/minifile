@@ -1,0 +1,11 @@
+.gocache/
+.gomodcache/
+data/
+tmp_test/
+_skills/
+gossh.exe
+gossh_linux_amd64
+*.exe~
+*.log
+Thumbs.db
+.DS_Store

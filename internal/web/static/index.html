@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>gossh room</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell app-shell">
+      <section class="panel hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Browser Relay</p>
+          <h1>浏览器文件传输</h1>
+          <p class="lede">像聊天一样传文件。发送页创建房间并上传，下载页输入房间号或粘贴链接即可查看和下载。</p>
+        </div>
+        <div class="tab-switch">
+          <button id="tab-send" class="tab-btn active" type="button">发送文件</button>
+          <button id="tab-receive" class="tab-btn ghost" type="button">下载文件</button>
+        </div>
+      </section>
+
+      <section class="panel room-summary">
+        <div class="summary-card">
+          <span>当前房间</span>
+          <strong id="room-id">未进入</strong>
+        </div>
+        <div class="summary-card">
+          <span>房间密码</span>
+          <strong id="room-password">未设置</strong>
+        </div>
+        <div class="summary-card">
+          <span>在线人数</span>
+          <strong id="online-count">0</strong>
+        </div>
+        <div class="summary-card">
+          <span>房间状态</span>
+          <strong id="room-state">未进入</strong>
+        </div>
+        <div class="summary-card wide">
+          <span>分享链接</span>
+          <input id="share-link" readonly placeholder="创建或进入房间后，这里会生成完整链接" />
+        </div>
+        <button id="copy-link" class="ghost" type="button" disabled>复制房间链接</button>
+      </section>
+
+      <section id="page-send" class="page active">
+        <div class="page-grid">
+          <section class="panel composer">
+            <div class="panel-head">
+              <h2>发送文件</h2>
+            </div>
+            <div class="field-grid">
+              <label class="field">
+                <span>房间号</span>
+                <input id="send-room-id" placeholder="可自定义，不填则自动生成，例如 SAFE2026" />
+              </label>
+              <label class="field">
+                <span>房间密码</span>
+                <input id="send-room-password" placeholder="可自定义，不填则自动生成" />
+              </label>
+            </div>
+            <label class="field">
+              <span>昵称</span>
+              <input id="send-peer-name" placeholder="不填则默认匿名用户" />
+            </label>
+            <div class="action-row">
+              <button id="create-room" type="button">创建发送房间</button>
+              <button id="refresh-room" class="ghost" type="button">刷新房间</button>
+            </div>
+            <p class="section-note">创建成功后会自动生成分享链接，对方只要打开链接或输入房间号和密码，就能在下载页看到文件。</p>
+
+            <label class="field">
+              <span>选择文件</span>
+              <input id="file-input" type="file" />
+            </label>
+            <label class="field">
+              <span>分块大小</span>
+              <select id="chunk-size">
+                <option value="262144">256 KiB</option>
+                <option value="524288" selected>512 KiB</option>
+                <option value="1048576">1 MiB</option>
+              </select>
+            </label>
+            <div class="action-row">
+              <button id="upload-btn" type="button" disabled>发送文件</button>
+              <button id="toggle-upload" class="ghost" type="button" disabled>暂停上传</button>
+            </div>
+            <p id="upload-log" class="log">先创建房间，再选择文件发送。</p>
+          </section>
+
+          <section class="panel timeline-panel">
+            <div class="panel-head">
+              <h2>房间动态</h2>
+            </div>
+            <div id="timeline" class="timeline"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="page-receive" class="page">
+        <div class="page-grid receive-grid">
+          <section class="panel join-panel">
+            <div class="panel-head">
+              <h2>下载文件</h2>
+            </div>
+            <label class="field">
+              <span>昵称</span>
+              <input id="receive-peer-name" placeholder="不填则默认匿名用户" />
+            </label>
+            <label class="field">
+              <span>粘贴分享链接</span>
+              <input id="link-input" placeholder="粘贴别人发给你的完整链接" />
+            </label>
+            <label class="field">
+              <span>房间号</span>
+              <input id="room-input" placeholder="例如 SAFE2026" />
+            </label>
+            <label class="field">
+              <span>房间密码</span>
+              <input id="password-input" placeholder="输入密码后进入房间并解密文件" />
+            </label>
+            <button id="join-room" type="button">进入下载房间</button>
+            <p class="section-note">可以直接粘贴分享链接，也可以手动输入房间号和密码进入另一个房间。</p>
+          </section>
+
+          <section class="panel files-panel">
+            <div class="panel-head">
+              <h2>当前房间文件</h2>
+              <button id="download-latest" class="ghost" type="button" disabled>下载最新文件</button>
+            </div>
+            <div id="file-list" class="file-list"></div>
+            <p id="download-log" class="log">进入房间后，这里会显示现有文件。</p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
