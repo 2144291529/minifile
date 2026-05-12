@@ -174,11 +174,10 @@ func (s *Service) GetResumeState(ctx context.Context, roomID, transferID string)
 }
 
 func (s *Service) MarkDownloading(ctx context.Context, roomID, transferID, actor string) (domain.Transfer, error) {
-	transfer, err := s.meta.UpdateTransferStatus(ctx, roomID, transferID, domain.TransferStatusDownloading)
+	transfer, err := s.meta.GetTransfer(ctx, roomID, transferID)
 	if err != nil {
 		return domain.Transfer{}, err
 	}
-	_ = s.meta.MarkRoomStatus(ctx, roomID, domain.RoomStatusDownloading)
 	_ = s.AppendEvent(ctx, domain.RoomEvent{
 		ID:         newEventID(),
 		Type:       "transfer.downloading",

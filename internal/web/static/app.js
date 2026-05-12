@@ -17,6 +17,7 @@
     shareLink: $("share-link"),
     copyLink: $("copy-link"),
     sendRoomId: $("send-room-id"),
+    roomIdHint: $("room-id-hint"),
     sendRoomPassword: $("send-room-password"),
     sendPeerName: $("send-peer-name"),
     createRoom: $("create-room"),
@@ -51,6 +52,7 @@
   };
 
   const defaultPeerName = "匿名用户";
+  const roomIdPattern = /^[A-Z0-9_-]{4,32}$/;
 
   function esc(value) {
     return String(value)
@@ -115,6 +117,33 @@
       return;
     }
     connectWS();
+  }
+
+  function validateRequestedRoomId(rawValue) {
+    const value = (rawValue || "").trim().toUpperCase();
+    if (!value) {
+      return { ok: true, value: "" };
+    }
+    if (!roomIdPattern.test(value)) {
+      return {
+        ok: false,
+        value,
+        message: "房间号不能少于 4 位；手动填写时必须为 4 到 32 位，只能包含大写字母、数字、下划线或短横线。",
+      };
+    }
+    return { ok: true, value };
+  }
+
+  function updateRoomIdHint() {
+    const result = validateRequestedRoomId(els.sendRoomId.value);
+    if (result.ok) {
+      els.roomIdHint.textContent = "房间号可留空自动生成；如果手动填写，必须为 4 到 32 位，只能包含大写字母、数字、下划线或短横线。";
+      els.roomIdHint.style.color = "";
+      return true;
+    }
+    els.roomIdHint.textContent = result.message;
+    els.roomIdHint.style.color = "var(--accent)";
+    return false;
   }
 
   async function requestJSON(url, options) {
@@ -452,7 +481,12 @@
 
   async function createRoom() {
     needCrypto();
-    const requestedRoomId = (els.sendRoomId.value || "").trim().toUpperCase();
+    const roomIdCheck = validateRequestedRoomId(els.sendRoomId.value);
+    if (!roomIdCheck.ok) {
+      updateRoomIdHint();
+      throw new Error(roomIdCheck.message);
+    }
+    const requestedRoomId = roomIdCheck.value;
     const password = (els.sendRoomPassword.value || "").trim() || randomToken(10);
     setPeerName(peerName());
     const response = await requestJSON(`/api/v1/rooms${requestedRoomId ? `?roomId=${encodeURIComponent(requestedRoomId)}` : ""}`, {
@@ -672,6 +706,7 @@
     URL.revokeObjectURL(url);
 
     delete state.downloads[transferId];
+    updateDownloadLatestButton();
     els.downloadLog.textContent = `下载完成：${manifest.name}`;
     renderFiles((state.snapshot && state.snapshot.transfers) || []);
     await refreshRoom();
@@ -755,6 +790,10 @@
     }
   };
   els.fileInput.onchange = updateButtons;
+  els.sendRoomId.addEventListener("input", () => {
+    els.sendRoomId.value = els.sendRoomId.value.toUpperCase();
+    updateRoomIdHint();
+  });
   els.uploadBtn.onclick = () => {
     startUpload().catch((error) => {
       if (!isAbort(error)) {
@@ -808,6 +847,7 @@
     renderFiles([]);
     updateSummary();
     updateDownloadLatestButton();
+    updateRoomIdHint();
 
     const parsed = parseHash();
     if (parsed.page === "receive") {
